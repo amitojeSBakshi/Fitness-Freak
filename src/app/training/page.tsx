@@ -1,9 +1,13 @@
 "use client";
 
-import { Info } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Info, Check, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { createClient } from "@/lib/supabase/client";
 import { Card, SectionHeading } from "@/components/ui/Card";
 import { DemoBanner } from "@/components/ui/DemoBanner";
+import { addWorkoutSession, getRecentWorkoutSessions } from "@/lib/supabase/queries";
+import { todayISO } from "@/lib/date";
 
 const WEEK_PLAN = [
   { day: "Mon", label: "Full Body A", type: "strength" },
@@ -48,8 +52,42 @@ const TODAY_EXERCISES = [
   },
 ];
 
+// Rough MET-based estimate for a ~50min moderate resistance session at this bodyweight.
+// Will be replaced by a per-session estimate once effort/duration are actually captured.
+const ESTIMATED_SESSION_KCAL = 280;
+
 export default function TrainingPage() {
   const { user } = useAuth();
+  const [loggedToday, setLoggedToday] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const checkToday = useCallback(async () => {
+    if (!user) return;
+    setChecking(true);
+    const supabase = createClient();
+    const sessions = await getRecentWorkoutSessions(supabase, user.id, 0);
+    setLoggedToday(sessions.some((s) => s.logged_on === todayISO() && s.session_type !== "rest"));
+    setChecking(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) checkToday();
+  }, [user, checkToday]);
+
+  const handleLog = async () => {
+    if (!user || loggedToday) return;
+    setSaving(true);
+    const supabase = createClient();
+    await addWorkoutSession(supabase, user.id, {
+      session_name: "Full Body A",
+      session_type: "strength",
+      duration_min: 50,
+      estimated_kcal: ESTIMATED_SESSION_KCAL,
+    });
+    setLoggedToday(true);
+    setSaving(false);
+  };
 
   return (
     <div className="flex flex-col gap-4 pb-4">
@@ -103,9 +141,28 @@ export default function TrainingPage() {
             </div>
           ))}
         </div>
-        <button className="mt-4 w-full rounded-xl bg-accent py-2.5 text-sm font-semibold text-accent-foreground">
-          Log this workout
-        </button>
+        {user ? (
+          <button
+            onClick={handleLog}
+            disabled={loggedToday || saving || checking}
+            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold ${
+              loggedToday ? "bg-accent-soft text-accent" : "bg-accent text-accent-foreground"
+            } disabled:cursor-default`}
+          >
+            {saving && <Loader2 size={16} className="animate-spin" />}
+            {loggedToday ? (
+              <>
+                <Check size={16} /> Logged for today
+              </>
+            ) : (
+              "Log this workout"
+            )}
+          </button>
+        ) : (
+          <button className="mt-4 w-full rounded-xl border border-border py-2.5 text-sm font-semibold text-muted-foreground">
+            Sign in to log workouts
+          </button>
+        )}
       </Card>
     </div>
   );
