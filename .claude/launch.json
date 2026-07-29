@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "fitness-journey-dev",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "C:\\Users\\Amitoje Singh Bakshi\\OneDrive\\Documents\\Claude\\Fitness Agent\\scripts\\start-dev.cmd"],
+      "port": 3000
+    }
+  ]
+}

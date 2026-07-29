@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f8f7;
+  --surface: #ffffff;
+  --surface-muted: #eef2f0;
+  --border: #e1e6e3;
+  --foreground: #121512;
+  --muted-foreground: #656f68;
+  --accent: #16a34a;
+  --accent-foreground: #ffffff;
+  --accent-soft: #dcfce7;
+  --warning: #ea580c;
+  --warning-soft: #ffedd5;
+  /* Chart/status fill colors — validated with scripts/validate_palette.js
+     against both light and dark surfaces (dataviz skill). Kept separate from
+     --accent/--warning above because those need to stay lighter for text
+     contrast on dark surfaces, while fills need mid-lightness (OKLCH L
+     0.48-0.67 in dark mode) to pass the categorical lightness band. */
+  --chart-good: #16a34a;
+  --chart-warn: #ea580c;
+  --chart-neutral: #9aa5a0;
+  /* Macro series (protein/carbs/fat) — categorical slots 1-3, validated
+     all-pairs in both modes. Light-mode aqua is sub-3:1 on white, so every
+     macro mark ships a visible direct label. */
+  --macro-protein: #2a78d6;
+  --macro-carbs: #eb6834;
+  --macro-fat: #1baf7a;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-chart-good: var(--chart-good);
+  --color-chart-warn: var(--chart-warn);
+  --color-chart-neutral: var(--chart-neutral);
+  --color-macro-protein: var(--macro-protein);
+  --color-macro-carbs: var(--macro-carbs);
+  --color-macro-fat: var(--macro-fat);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0a0d0b;
+    --surface: #131916;
+    --surface-muted: #1a221e;
+    --border: #232b27;
+    --foreground: #eef2ef;
+    --muted-foreground: #8b968f;
+    --accent: #34d399;
+    --accent-foreground: #06251a;
+    --accent-soft: #163527;
+    --warning: #fb923c;
+    --warning-soft: #3a2412;
+    --macro-protein: #3987e5;
+    --macro-carbs: #d95926;
+    --macro-fat: #199e70;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+  .safe-top {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
 }
