@@ -18,7 +18,7 @@ import {
   getHabitLog,
 } from "@/lib/supabase/queries";
 import { daysAgoISO, shortWeekday, todayISO } from "@/lib/date";
-import { deriveTargets } from "@/lib/nutrition/targets";
+import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
 import type { WeightLog, WorkoutSession, HabitLog } from "@/lib/types";
 
 const DEMO_HABITS = [
@@ -53,8 +53,6 @@ const DEMO_CONSISTENCY_DAYS = Array.from({ length: 28 }, (_, i) => ({
   date: `Day ${i + 1}`,
   status: DEMO_PATTERN[i % DEMO_PATTERN.length],
 }));
-
-const BODY_STATS = { weightKg: 74, heightCm: 174, age: 22, sex: "male" as const, trainingDaysPerWeek: 5 };
 
 function buildConsistencyDays(sessions: WorkoutSession[]) {
   const trained = new Set(sessions.filter((s) => s.session_type !== "rest").map((s) => s.logged_on));
@@ -95,7 +93,7 @@ export default function ProgressPage() {
     if (user) load();
   }, [user, load]);
 
-  const targets = deriveTargets(BODY_STATS);
+  const targets = CURRENT_TARGETS;
 
   const weightData = user
     ? weightLogs.map((w) => ({ label: shortWeekday(w.logged_on), value: w.weight_kg }))

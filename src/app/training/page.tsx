@@ -1,88 +1,51 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Info, Check, Loader2 } from "lucide-react";
+import { Info, Check, Loader2, Flame, Footprints } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { Card, SectionHeading } from "@/components/ui/Card";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { addWorkoutSession, getRecentWorkoutSessions } from "@/lib/supabase/queries";
 import { todayISO } from "@/lib/date";
+import { SESSIONS, MINIMUM_VIABLE_SESSION, WARMUP, nextSessionName } from "@/lib/training/program";
 
-const WEEK_PLAN = [
-  { day: "Mon", label: "Full Body A", type: "strength" },
-  { day: "Tue", label: "Outdoor + Core", type: "cardio" },
-  { day: "Wed", label: "Full Body B", type: "strength" },
-  { day: "Thu", label: "Rest", type: "rest" },
-  { day: "Fri", label: "Full Body A", type: "strength" },
-  { day: "Sat", label: "Outdoor (optional)", type: "cardio" },
-  { day: "Sun", label: "Rest", type: "rest" },
-];
-
-const TODAY_EXERCISES = [
-  {
-    name: "Goblet Squat (or bodyweight squat)",
-    sets: "3 x 12-15",
-    rest: "60-90s",
-    why: "Builds the squat pattern and leg strength — the base for everything else. Bodyweight is fine until form is solid.",
-  },
-  {
-    name: "Dumbbell Bench Press (or Push-up)",
-    sets: "3 x 10-12",
-    rest: "60-90s",
-    why: "Chest/shoulders/triceps push strength. Push-ups are a full substitute if no bench.",
-  },
-  {
-    name: "Dumbbell Row (or backpack row)",
-    sets: "3 x 12 each side",
-    rest: "60s",
-    why: "Balances out all the pushing/sitting from your desk job and builds back strength.",
-  },
-  {
-    name: "Glute Bridge",
-    sets: "3 x 15",
-    rest: "45s",
-    why: "Wakes up glutes that go dormant from sitting all day — protects your lower back.",
-  },
-  {
-    name: "Plank",
-    sets: "3 x 30-45s",
-    rest: "45s",
-    why: "Core stability so heavier lifts later don't stress your spine.",
-  },
-];
-
-// Rough MET-based estimate for a ~50min moderate resistance session at this bodyweight.
-// Will be replaced by a per-session estimate once effort/duration are actually captured.
-const ESTIMATED_SESSION_KCAL = 280;
+// Rough MET-based estimate for a ~45min moderate resistance session at this bodyweight.
+const ESTIMATED_SESSION_KCAL = 260;
 
 export default function TrainingPage() {
   const { user } = useAuth();
+  const [sessionName, setSessionName] = useState(SESSIONS[0].name);
   const [loggedToday, setLoggedToday] = useState(false);
   const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const checkToday = useCallback(async () => {
+  const load = useCallback(async () => {
     if (!user) return;
     setChecking(true);
     const supabase = createClient();
-    const sessions = await getRecentWorkoutSessions(supabase, user.id, 0);
+    const sessions = await getRecentWorkoutSessions(supabase, user.id, 60);
+    const strengthSessions = sessions.filter((s) => s.session_type === "strength");
+    const last = strengthSessions[strengthSessions.length - 1];
     setLoggedToday(sessions.some((s) => s.logged_on === todayISO() && s.session_type !== "rest"));
+    setSessionName(nextSessionName(last?.session_name ?? null));
     setChecking(false);
   }, [user]);
 
   useEffect(() => {
-    if (user) checkToday();
-  }, [user, checkToday]);
+    if (user) load();
+  }, [user, load]);
+
+  const session = SESSIONS.find((s) => s.name === sessionName) ?? SESSIONS[0];
 
   const handleLog = async () => {
     if (!user || loggedToday) return;
     setSaving(true);
     const supabase = createClient();
     await addWorkoutSession(supabase, user.id, {
-      session_name: "Full Body A",
+      session_name: session.name,
       session_type: "strength",
-      duration_min: 50,
+      duration_min: 45,
       estimated_kcal: ESTIMATED_SESSION_KCAL,
     });
     setLoggedToday(true);
@@ -94,50 +57,34 @@ export default function TrainingPage() {
       {!user && <DemoBanner />}
 
       <div>
-        <p className="text-sm text-muted-foreground">Phase 1 · Foundation · Week 2</p>
+        <p className="text-sm text-muted-foreground">Phase 1 · Foundation · Weeks 1-4</p>
         <h1 className="text-2xl font-semibold tracking-tight">Training</h1>
       </div>
 
       <Card className="flex items-start gap-2 bg-surface-muted text-sm text-muted-foreground">
         <Info size={16} className="mt-0.5 shrink-0 text-accent" />
         <p>
-          Programmed for dumbbells + bodyweight by default. Tell me what&apos;s actually in your
-          apartment gym and I&apos;ll tailor the exact exercises.
+          Rotating queue, not a fixed calendar: <strong className="text-foreground">Upper A → Lower A → Upper B → Lower B</strong>.
+          Whenever you train, you do the next one — a missed day shifts the queue instead of leaving
+          a hole. Every muscle still gets 2x/week frequency, immune to a chaotic schedule. Loads will
+          feel light in weeks 1-2 — that's correct, not a mistake. Never miss on purpose to chase a
+          burn this early.
         </p>
       </Card>
 
       <Card>
-        <SectionHeading title="This week" subtitle="4-5 sessions, 45-60 min each" />
-        <div className="grid grid-cols-7 gap-1.5 text-center">
-          {WEEK_PLAN.map((d) => (
-            <div key={d.day} className="flex flex-col items-center gap-1">
-              <span className="text-xs text-muted-foreground">{d.day}</span>
-              <div
-                className={`flex h-14 w-full items-center justify-center rounded-lg text-[10px] font-medium leading-tight ${
-                  d.type === "strength"
-                    ? "bg-accent-soft text-accent"
-                    : d.type === "cardio"
-                      ? "bg-warning-soft text-warning"
-                      : "bg-surface-muted text-muted-foreground"
-                }`}
-              >
-                {d.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card>
-        <SectionHeading title="Today · Full Body A" subtitle="Foundation strength" />
+        <SectionHeading title={`Up next · ${session.name}`} subtitle={session.focus} action={<Flame className="text-accent" size={20} />} />
         <div className="flex flex-col gap-3">
-          {TODAY_EXERCISES.map((ex) => (
+          {session.exercises.map((ex) => (
             <div key={ex.name} className="border-b border-border pb-3 last:border-0 last:pb-0">
               <div className="mb-1 flex items-baseline justify-between gap-2">
                 <p className="text-sm font-medium">{ex.name}</p>
-                <p className="whitespace-nowrap text-xs text-muted-foreground">{ex.sets}</p>
+                <p className="whitespace-nowrap text-xs text-muted-foreground">{ex.sets} · rest {ex.rest}</p>
               </div>
-              <p className="text-xs text-muted-foreground">Rest {ex.rest} — {ex.why}</p>
+              <p className="text-xs text-muted-foreground">{ex.why}</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                <span className="text-accent">Easier:</span> {ex.easier} · <span className="text-accent">Harder:</span> {ex.harder}
+              </p>
             </div>
           ))}
         </div>
@@ -155,7 +102,7 @@ export default function TrainingPage() {
                 <Check size={16} /> Logged for today
               </>
             ) : (
-              "Log this workout"
+              `Log ${session.name}`
             )}
           </button>
         ) : (
@@ -163,6 +110,26 @@ export default function TrainingPage() {
             Sign in to log workouts
           </button>
         )}
+      </Card>
+
+      <Card>
+        <SectionHeading title="Warm-up" subtitle="6-8 min, every session" />
+        <p className="text-sm text-muted-foreground">{WARMUP}</p>
+      </Card>
+
+      <Card className="border-accent/30 bg-accent-soft">
+        <p className="text-sm font-medium">{MINIMUM_VIABLE_SESSION.title}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{MINIMUM_VIABLE_SESSION.detail}</p>
+      </Card>
+
+      <Card>
+        <SectionHeading title="Steps & outdoor conditioning" action={<Footprints className="text-accent" size={20} />} />
+        <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          <li>Build to 8,000 steps/day by week 4 — your single highest-leverage fat-loss lever, and free.</li>
+          <li>2x/week, 30-40 min outdoor Zone 2 (conversation-pace walk/jog/cycle) on non-lifting days.</li>
+          <li>A 15-20 min lunch walk + standing/moving 2-3 min every desk hour adds 1,500-2,500 steps by itself.</li>
+          <li>No hard running/cycling intervals within 24h before a lower-body session.</li>
+        </ul>
       </Card>
     </div>
   );

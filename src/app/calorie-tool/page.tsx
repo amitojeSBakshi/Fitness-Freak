@@ -14,7 +14,7 @@ import {
   sumFoodLogs,
   getRecentWorkoutSessions,
 } from "@/lib/supabase/queries";
-import { deriveTargets } from "@/lib/nutrition/targets";
+import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
 import { todayISO } from "@/lib/date";
 import type { FoodLog } from "@/lib/types";
 
@@ -23,9 +23,6 @@ const DEMO_LOG: FoodEstimate[] = [
   { label: "Chicken breast + rice + salad", matched: null, grams: 350, kcal: 560, protein: 48, carbs: 55, fat: 12, confidence: "medium" },
   { label: "Paneer bhurji + 2 roti", matched: null, grams: 300, kcal: 470, protein: 28, carbs: 38, fat: 26, confidence: "medium" },
 ];
-
-// Hardcoded until onboarding writes real stats into the profile row.
-const BODY_STATS = { weightKg: 74, heightCm: 174, age: 22, sex: "male" as const, trainingDaysPerWeek: 5 };
 
 export default function CalorieToolPage() {
   const { user } = useAuth();
@@ -37,7 +34,7 @@ export default function CalorieToolPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const targets = deriveTargets(BODY_STATS);
+  const targets = CURRENT_TARGETS;
 
   const loadToday = useCallback(async () => {
     if (!user) return;
@@ -184,9 +181,9 @@ export default function CalorieToolPage() {
         <Card className="mt-3 flex items-start gap-2 bg-surface-muted text-xs text-muted-foreground">
           <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warning" />
           <p>
-            Estimates come from a starter food database — accurate for common items, rougher for
-            anything not yet matched (flagged as low confidence). A larger, research-verified
-            database is being merged in.
+            Estimates come from a 138-item Indian food database (IFCT/USDA-sourced, fact-checked
+            for errors). Home-cooked oil-heavy dishes still vary — anything flagged low confidence
+            is a rougher starting estimate, not a lab number.
           </p>
         </Card>
       </Card>

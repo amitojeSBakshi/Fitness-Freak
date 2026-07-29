@@ -54,10 +54,10 @@ export type Targets = {
  */
 export function deriveTargets(stats: BodyStats, maintenanceOverride?: number): Targets {
   const maintenanceKcal = maintenanceOverride ?? estimateMaintenanceKcal(stats);
-  const targetKcal = Math.round(maintenanceKcal * 0.85);
+  const targetKcal = Math.round(maintenanceKcal * 0.8);
 
-  const proteinG = Math.round(stats.weightKg * 2);
-  const fatG = Math.round((stats.weightKg * 0.8));
+  const proteinG = Math.round(stats.weightKg * 2.16);
+  const fatG = Math.round(stats.weightKg * 0.95);
   const remainingKcal = targetKcal - proteinG * 4 - fatG * 9;
   const carbsG = Math.max(50, Math.round(remainingKcal / 4));
 
@@ -69,4 +69,37 @@ export function deriveTargets(stats: BodyStats, maintenanceOverride?: number): T
     fatG,
     waterL: 3.2,
   };
+}
+
+/**
+ * Research-calibrated targets (Mifflin-St Jeor + activity multiplier for a
+ * sedentary desk job + 4-5 training days/week, then a ~20% deficit for
+ * recomposition). This is a hypothesis to be replaced by REAL calibrated
+ * numbers once 2-3 weeks of logged weight + intake exist — see
+ * recalibrateMaintenance() below. Treat as a starting point, not gospel.
+ */
+export const CURRENT_TARGETS: Targets = {
+  maintenanceKcal: 2500,
+  targetKcal: 2000,
+  proteinG: 160,
+  carbsG: 182,
+  fatG: 70,
+  waterL: 3.2,
+};
+
+/**
+ * Derives true maintenance from a window of real logged data, per the
+ * research method: compare rolling-average weight change against average
+ * logged intake over the same window, using 7700 kcal ≈ 1kg of bodyweight.
+ */
+export function recalibrateMaintenance(
+  avgDailyIntakeKcal: number,
+  startRollingAvgWeightKg: number,
+  endRollingAvgWeightKg: number,
+  windowDays: number,
+): number {
+  const weightChangeKg = endRollingAvgWeightKg - startRollingAvgWeightKg;
+  const energyChangeKcal = weightChangeKg * 7700;
+  const dailyEnergyChangeKcal = energyChangeKcal / windowDays;
+  return Math.round(avgDailyIntakeKcal - dailyEnergyChangeKcal);
 }
