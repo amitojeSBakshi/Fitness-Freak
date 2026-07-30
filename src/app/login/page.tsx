@@ -57,7 +57,7 @@ export default function LoginPage() {
         <h1 className="text-xl font-semibold tracking-tight">Sign in to Fit Freak</h1>
         <p className="max-w-xs text-sm text-muted-foreground">
           {step === "email"
-            ? "No password needed — we'll email you a 6-digit code."
+            ? "No password needed — we'll email you a one-time code."
             : `Enter the code sent to ${email}`}
         </p>
       </div>
@@ -96,17 +96,17 @@ export default function LoginPage() {
                 pattern="[0-9]*"
                 autoFocus
                 required
-                maxLength={6}
+                maxLength={12}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="6-digit code"
-                className="flex-1 bg-transparent text-center text-lg tracking-[0.4em] outline-none"
+                placeholder="Enter the code"
+                className="flex-1 bg-transparent text-center text-lg tracking-[0.3em] outline-none"
               />
             </div>
             {status === "error" && <p className="text-xs text-warning">{errorMsg}</p>}
             <button
               type="submit"
-              disabled={status === "loading" || code.length < 6}
+              disabled={status === "loading" || code.length === 0}
               className="rounded-xl bg-accent py-2.5 text-sm font-semibold text-accent-foreground disabled:opacity-60"
             >
               {status === "loading" ? "Verifying..." : "Verify & sign in"}
