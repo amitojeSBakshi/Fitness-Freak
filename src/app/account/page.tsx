@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { UserCircle, LogOut, Settings, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, SectionHeading } from "@/components/ui/Card";
+import { PushSubscribe } from "@/components/PushSubscribe";
 
 export default function AccountPage() {
   const { user, profile, signOut, loading } = useAuth();
@@ -47,6 +48,8 @@ export default function AccountPage() {
           <ChevronRight size={18} className="text-muted-foreground" />
         </Card>
       </Link>
+
+      <PushSubscribe />
 
       <button
         onClick={async () => {
