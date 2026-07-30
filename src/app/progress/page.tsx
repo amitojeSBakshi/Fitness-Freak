@@ -18,7 +18,7 @@ import {
   getHabitLog,
 } from "@/lib/supabase/queries";
 import { daysAgoISO, shortWeekday, todayISO } from "@/lib/date";
-import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
+import { targetsFromProfile } from "@/lib/nutrition/targets";
 import type { WeightLog, WorkoutSession, HabitLog } from "@/lib/types";
 
 const DEMO_HABITS = [
@@ -65,7 +65,7 @@ function buildConsistencyDays(sessions: WorkoutSession[]) {
 }
 
 export default function ProgressPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [calorieWeek, setCalorieWeek] = useState<{ date: string; kcal: number }[]>([]);
@@ -93,7 +93,7 @@ export default function ProgressPage() {
     if (user) load();
   }, [user, load]);
 
-  const targets = CURRENT_TARGETS;
+  const targets = targetsFromProfile(user ? profile : null);
 
   const weightData = user
     ? weightLogs.map((w) => ({ label: shortWeekday(w.logged_on), value: w.weight_kg }))

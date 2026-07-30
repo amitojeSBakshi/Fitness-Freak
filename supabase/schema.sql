@@ -11,10 +11,15 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   display_name text,
   date_of_birth date,
+  age smallint,
+  sex text,                                   -- 'male' | 'female' — needed for the BMR formula
   height_cm numeric(5,1),
   starting_weight_kg numeric(5,2),
   goal text,                                  -- 'fat_loss' | 'recomp' | 'muscle_gain' | 'maintain'
   activity_level text default 'sedentary',
+  equipment text,                             -- 'bodyweight' | 'dumbbells' | 'full_gym'
+  diet_preference text,                       -- 'veg' | 'non_veg' | 'eggetarian' | 'flexible'
+  onboarding_completed boolean default false,
   -- Targets. maintenance_kcal starts as a formula estimate and gets replaced by a
   -- value calibrated from real logged data after 2-3 weeks.
   maintenance_kcal integer,

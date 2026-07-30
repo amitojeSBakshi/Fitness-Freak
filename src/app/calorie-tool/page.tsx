@@ -14,7 +14,7 @@ import {
   sumFoodLogs,
   getRecentWorkoutSessions,
 } from "@/lib/supabase/queries";
-import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
+import { targetsFromProfile } from "@/lib/nutrition/targets";
 import { todayISO } from "@/lib/date";
 import type { FoodLog } from "@/lib/types";
 
@@ -25,7 +25,7 @@ const DEMO_LOG: FoodEstimate[] = [
 ];
 
 export default function CalorieToolPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [foodInput, setFoodInput] = useState("");
   const [description, setDescription] = useState("");
   const [preview, setPreview] = useState<FoodEstimate[]>([]);
@@ -34,7 +34,7 @@ export default function CalorieToolPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const targets = CURRENT_TARGETS;
+  const targets = targetsFromProfile(user ? profile : null);
 
   const loadToday = useCallback(async () => {
     if (!user) return;

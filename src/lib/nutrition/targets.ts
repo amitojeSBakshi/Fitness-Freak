@@ -88,6 +88,39 @@ export const CURRENT_TARGETS: Targets = {
 };
 
 /**
+ * Resolves the targets a page should show for the signed-in user: their own
+ * saved targets if onboarding set them, a formula estimate if we at least
+ * have body stats, or the generic CURRENT_TARGETS default otherwise (also
+ * what signed-out demo mode shows).
+ */
+export function targetsFromProfile(profile: import("@/lib/types").Profile | null): Targets {
+  if (!profile) return CURRENT_TARGETS;
+
+  if (profile.target_kcal && profile.target_protein_g && profile.target_carbs_g && profile.target_fat_g) {
+    return {
+      maintenanceKcal: profile.maintenance_kcal ?? CURRENT_TARGETS.maintenanceKcal,
+      targetKcal: profile.target_kcal,
+      proteinG: profile.target_protein_g,
+      carbsG: profile.target_carbs_g,
+      fatG: profile.target_fat_g,
+      waterL: profile.target_water_l ?? CURRENT_TARGETS.waterL,
+    };
+  }
+
+  if (profile.starting_weight_kg && profile.height_cm && profile.age && profile.sex) {
+    return deriveTargets({
+      weightKg: profile.starting_weight_kg,
+      heightCm: profile.height_cm,
+      age: profile.age,
+      sex: profile.sex,
+      trainingDaysPerWeek: profile.training_days_per_week ?? 4,
+    });
+  }
+
+  return CURRENT_TARGETS;
+}
+
+/**
  * Derives true maintenance from a window of real logged data, per the
  * research method: compare rolling-average weight change against average
  * logged intake over the same window, using 7700 kcal ≈ 1kg of bodyweight.

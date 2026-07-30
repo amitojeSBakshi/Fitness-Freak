@@ -1,13 +1,23 @@
 export type Confidence = "high" | "medium" | "low";
 
+export type Sex = "male" | "female";
+export type Equipment = "bodyweight" | "dumbbells" | "full_gym";
+export type DietPreference = "veg" | "non_veg" | "eggetarian" | "flexible";
+export type Goal = "fat_loss" | "recomp" | "muscle_gain" | "maintain";
+
 export type Profile = {
   id: string;
   display_name: string | null;
   date_of_birth: string | null;
+  age: number | null;
+  sex: Sex | null;
   height_cm: number | null;
   starting_weight_kg: number | null;
-  goal: string | null;
+  goal: Goal | null;
   activity_level: string | null;
+  equipment: Equipment | null;
+  diet_preference: DietPreference | null;
+  onboarding_completed: boolean;
   maintenance_kcal: number | null;
   maintenance_is_calibrated: boolean;
   target_kcal: number | null;

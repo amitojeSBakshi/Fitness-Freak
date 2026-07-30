@@ -1,12 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserCircle, LogOut } from "lucide-react";
+import { UserCircle, LogOut, Settings, ChevronRight } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, SectionHeading } from "@/components/ui/Card";
 
 export default function AccountPage() {
-  const { user, signOut, loading } = useAuth();
+  const { user, profile, signOut, loading } = useAuth();
   const router = useRouter();
 
   if (loading) return null;
@@ -27,6 +28,25 @@ export default function AccountPage() {
         <SectionHeading title="Signed in" action={<UserCircle className="text-accent" size={20} />} />
         <p className="text-sm text-muted-foreground">{user.email}</p>
       </Card>
+
+      <Link href="/onboarding">
+        <Card className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings size={18} className="text-accent" />
+            <div>
+              <p className="text-sm font-medium">
+                {profile?.onboarding_completed ? "Edit profile & targets" : "Complete your profile"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {profile?.onboarding_completed
+                  ? "Update stats, equipment, or recalculate targets"
+                  : "Required for personalized targets and exercises"}
+              </p>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </Card>
+      </Link>
 
       <button
         onClick={async () => {

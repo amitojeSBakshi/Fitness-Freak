@@ -8,13 +8,13 @@ import { Card, SectionHeading } from "@/components/ui/Card";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { addWorkoutSession, getRecentWorkoutSessions } from "@/lib/supabase/queries";
 import { todayISO } from "@/lib/date";
-import { SESSIONS, MINIMUM_VIABLE_SESSION, WARMUP, nextSessionName } from "@/lib/training/program";
+import { SESSIONS, MINIMUM_VIABLE_SESSION, WARMUP, nextSessionName, equipmentNote } from "@/lib/training/program";
 
 // Rough MET-based estimate for a ~45min moderate resistance session at this bodyweight.
 const ESTIMATED_SESSION_KCAL = 260;
 
 export default function TrainingPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [sessionName, setSessionName] = useState(SESSIONS[0].name);
   const [loggedToday, setLoggedToday] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -71,6 +71,13 @@ export default function TrainingPage() {
           burn this early.
         </p>
       </Card>
+
+      {equipmentNote(profile?.equipment) && (
+        <Card className="flex items-start gap-2 bg-accent-soft text-sm text-foreground">
+          <Info size={16} className="mt-0.5 shrink-0 text-accent" />
+          <p>{equipmentNote(profile?.equipment)}</p>
+        </Card>
+      )}
 
       <Card>
         <SectionHeading title={`Up next · ${session.name}`} subtitle={session.focus} action={<Flame className="text-accent" size={20} />} />

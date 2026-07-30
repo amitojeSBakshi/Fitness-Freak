@@ -75,6 +75,18 @@ export const MINIMUM_VIABLE_SESSION = {
 
 export const WARMUP = "5 min brisk walking/stairs/skipping until slightly warm, then 2-3 light ramp-up sets on the first exercise of each pattern. Skip foam rolling and long static stretching — they don't earn their time cost before lifting.";
 
+const EQUIPMENT_NOTES: Record<string, string> = {
+  bodyweight:
+    "You said bodyweight-only — every dumbbell exercise below still works: use the \"Easier\" cue as your actual prescription (e.g. slow-tempo push-ups instead of DB press), and add reps/tempo/range instead of load to progress.",
+  full_gym:
+    "You've got a full gym — feel free to swap the dumbbell lifts for their barbell or machine equivalents (squat, bench, deadlift, row) at the same sets/reps/RIR. Use dumbbells for anything single-arm/single-leg.",
+};
+
+export function equipmentNote(equipment: string | null | undefined): string | null {
+  if (!equipment) return null;
+  return EQUIPMENT_NOTES[equipment] ?? null;
+}
+
 export function nextSessionName(lastCompleted: string | null): string {
   const names = SESSIONS.map((s) => s.name);
   if (!lastCompleted) return names[0];

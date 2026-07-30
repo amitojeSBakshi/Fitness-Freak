@@ -4,7 +4,7 @@ import { CheckCircle2, MinusCircle, Pill, Utensils, AlertTriangle } from "lucide
 import { useAuth } from "@/lib/auth-context";
 import { Card, SectionHeading } from "@/components/ui/Card";
 import { DemoBanner } from "@/components/ui/DemoBanner";
-import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
+import { targetsFromProfile } from "@/lib/nutrition/targets";
 
 const MEALS = [
   { time: "8:15-8:45am", meal: "Breakfast", detail: "2-3 eggs or paneer bhurji + 1-2 roti, or oats with milk + nuts" },
@@ -55,8 +55,8 @@ const SUPPLEMENTS = [
 const SKIP_SUPPLEMENTS = "Fat burners, BCAAs, testosterone boosters, mass gainers — no reliable benefit for your goal, and mass gainers actively work against fat loss.";
 
 export default function NutritionPage() {
-  const { user } = useAuth();
-  const t = CURRENT_TARGETS;
+  const { user, profile } = useAuth();
+  const t = targetsFromProfile(user ? profile : null);
 
   return (
     <div className="flex flex-col gap-4 pb-4">

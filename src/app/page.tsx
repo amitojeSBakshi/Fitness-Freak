@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Dumbbell, Sparkles, ChevronRight, Droplets, Footprints, Check } from "lucide-react";
+import { Dumbbell, Sparkles, ChevronRight, Droplets, Footprints, Check, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { Card, SectionHeading } from "@/components/ui/Card";
@@ -10,7 +10,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { IntakeRing } from "@/components/charts/IntakeRing";
 import { MacroBreakdown } from "@/components/charts/MacroBreakdown";
-import { CURRENT_TARGETS } from "@/lib/nutrition/targets";
+import { targetsFromProfile } from "@/lib/nutrition/targets";
 import { SESSIONS, nextSessionName } from "@/lib/training/program";
 import { getFoodLogsForDate, sumFoodLogs, getRecentWorkoutSessions, getHabitLog } from "@/lib/supabase/queries";
 import { daysAgoISO, shortWeekday, todayISO } from "@/lib/date";
@@ -32,7 +32,7 @@ const DEMO = {
 };
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, profile, profileLoading } = useAuth();
   const [eaten, setEaten] = useState<{ kcal: number; protein: number; carbs: number; fat: number } | null>(null);
   const [water, setWater] = useState<number | null>(null);
   const [weekDays, setWeekDays] = useState<{ date: string; done: boolean }[]>([]);
@@ -65,8 +65,9 @@ export default function HomePage() {
     if (user) load();
   }, [user, load]);
 
-  const t = CURRENT_TARGETS;
+  const t = targetsFromProfile(user ? profile : null);
   const session = SESSIONS.find((s) => s.name === sessionName) ?? SESSIONS[0];
+  const needsOnboarding = user && !profileLoading && !profile?.onboarding_completed;
 
   const caloriesLogged = user ? eaten?.kcal ?? 0 : DEMO.calories.logged;
   const macros = user
@@ -83,6 +84,22 @@ export default function HomePage() {
         <p className="text-sm text-muted-foreground">Good to see you</p>
         <h1 className="text-2xl font-bold tracking-tight">Let&apos;s make today count</h1>
       </div>
+
+      {needsOnboarding && (
+        <Link href="/onboarding">
+          <Card className="flex items-center gap-3 border-accent/30 bg-accent-soft">
+            <UserPlus className="shrink-0 text-accent" size={20} />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Finish setting up your profile</p>
+              <p className="text-xs text-muted-foreground">
+                2 minutes — your age, weight, equipment and goal calculate your real targets below,
+                instead of these generic defaults.
+              </p>
+            </div>
+            <ChevronRight size={18} className="shrink-0 text-accent" />
+          </Card>
+        </Link>
+      )}
 
       {!loading && week.length > 0 && (
         <div className="flex justify-between gap-1">
