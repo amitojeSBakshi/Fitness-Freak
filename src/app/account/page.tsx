@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserCircle, LogOut, Settings, ChevronRight } from "lucide-react";
@@ -10,12 +11,11 @@ export default function AccountPage() {
   const { user, profile, signOut, loading } = useAuth();
   const router = useRouter();
 
-  if (loading) return null;
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, user, router]);
 
-  if (!user) {
-    router.replace("/login");
-    return null;
-  }
+  if (loading || !user) return null;
 
   return (
     <div className="flex flex-col gap-4 pb-4">

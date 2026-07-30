@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Dumbbell, Sparkles, ChevronRight, Droplets, Footprints, Check, UserPlus } from "lucide-react";
+import { Dumbbell, Sparkles, ChevronRight, Droplets, Footprints, Check, UserPlus, NotebookPen } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { createClient } from "@/lib/supabase/client";
 import { Card, SectionHeading } from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { DemoBanner } from "@/components/ui/DemoBanner";
 import { IntakeRing } from "@/components/charts/IntakeRing";
 import { MacroBreakdown } from "@/components/charts/MacroBreakdown";
+import { DailyCheckinModal } from "@/components/DailyCheckin";
 import { targetsFromProfile } from "@/lib/nutrition/targets";
 import { SESSIONS, nextSessionName } from "@/lib/training/program";
 import { getFoodLogsForDate, sumFoodLogs, getRecentWorkoutSessions, getHabitLog } from "@/lib/supabase/queries";
@@ -38,6 +39,7 @@ export default function HomePage() {
   const [weekDays, setWeekDays] = useState<{ date: string; done: boolean }[]>([]);
   const [sessionName, setSessionName] = useState(SESSIONS[0].name);
   const [loading, setLoading] = useState(false);
+  const [checkinOpen, setCheckinOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -178,6 +180,26 @@ export default function HomePage() {
         <StatTile icon={Droplets} label="Water" value={`${waterValue}L`} sub={`of ${t.waterL}L target`} />
         <StatTile icon={Footprints} label="Steps" value="4,200" sub="of 7,000 target" />
       </div>
+
+      {user && (
+        <button
+          onClick={() => setCheckinOpen(true)}
+          className="flex items-center justify-center gap-2 rounded-xl border border-border py-2.5 text-sm font-semibold"
+        >
+          <NotebookPen size={16} /> Daily check-in
+        </button>
+      )}
+
+      {user && checkinOpen && (
+        <DailyCheckinModal
+          userId={user.id}
+          onClose={() => setCheckinOpen(false)}
+          onDone={() => {
+            setCheckinOpen(false);
+            load();
+          }}
+        />
+      )}
     </div>
   );
 }
